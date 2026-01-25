@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'k8s-server' }
+    agent any
     stages {
         stage('Pull Code From GitHub') {
             steps {
@@ -8,29 +8,29 @@ pipeline {
         }
         stage('Build the Docker image') {
             steps {
-                sh 'sudo docker build -t mazeimage /home/vijay/workspace/game-project'
-                sh 'sudo docker tag mazeimage vijay3639/mazeimage:latest'
-                sh 'sudo docker tag mazeimage vijay3639/mazeimage:${BUILD_NUMBER}'
+                sh 'docker build -t mazeimage .'
+                sh 'docker tag mazeimage vijay3639/mazeimage:latest'
+                sh 'docker tag mazeimage vijay3639/mazeimage:${BUILD_NUMBER}'
             }
         }
         stage('Trivy Vulnerability Scan') {
             steps {
                 script {
-                    sh 'sudo trivy image vijay3639/mazeimage:latest'
-                    sh 'sudo trivy image vijay3639/mazeimage:${BUILD_NUMBER}'
+                    sh 'trivy image vijay3639/mazeimage:latest'
+                    sh 'trivy image vijay3639/mazeimage:${BUILD_NUMBER}'
                 }
             }
         }
         stage('Push the Docker image') {
             steps {
-                sh 'sudo docker image push vijay3639/mazeimage:latest'
-                sh 'sudo docker image push vijay3639/mazeimage:${BUILD_NUMBER}'
+                sh 'docker image push vijay3639/mazeimage:latest'
+                sh 'docker image push vijay3639/mazeimage:${BUILD_NUMBER}'
             }
         }
         stage('Deploy on Kubernetes') {
             steps {
-                sh 'sudo kubectl apply -f /home/vijay/workspace/game-project/pod.yml'
-                sh 'sudo kubectl rollout restart deployment loadbalancer-pod'
+                sh 'kubectl apply -f pod.yml'
+                sh 'kubectl rollout restart deployment loadbalancer-pod'
             }
         }
     }
